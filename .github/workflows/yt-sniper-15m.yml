@@ -1,0 +1,31 @@
+name: YouTube Shorts & CTR Thumbnails Sniper 24/7 (15m)
+
+on:
+  schedule:
+    - cron: '4,19,34,49 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  hunt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 yt_sniper.py --max-alerts 5 --min-score 62 --hours 48
+      - run: |
+          git config user.name "yt-sniper-bot"
+          git config user.email "bot@users.noreply.github.com"
+          if ! git diff --quiet seen_leads.json; then
+            git add seen_leads.json
+            git commit -m "chore: update seen video & thumbnail leads"
+            git push
+          fi
